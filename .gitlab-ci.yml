@@ -1,0 +1,36 @@
+stages:
+  - test
+  - docker
+
+variables:
+  DOCKER_IMAGE: kuzminova/todo-service
+  MAVEN_CLI_OPTS: "-B -e -V"
+
+unit-tests:
+  stage: test
+  image: maven:3.9.6-eclipse-temurin-21
+  script:
+    - mvn $MAVEN_CLI_OPTS clean verify
+  only:
+    - merge_requests
+  except:
+    - master
+
+docker-build-test-push:
+  stage: docker
+  image: docker:27.2.0
+  services:
+    - docker:27.2.0-dind
+  before_script:
+    - apk add --no-cache bash curl docker-compose
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  script:
+    - docker build -t $DOCKER_IMAGE:latest .
+    - docker-compose up -d
+    - echo "Wait, when service started..."
+    - sleep 15
+    - curl --fail http://localhost:8082/actuator/health
+    - docker-compose down
+    - docker push $DOCKER_IMAGE:latest
+  only:
+    - master
