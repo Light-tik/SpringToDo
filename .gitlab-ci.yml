@@ -1,0 +1,29 @@
+stages:
+  - test
+  - build
+
+variables:
+  DOCKER_IMAGE: kuzminova/todo-service
+  MAVEN_CLI_OPTS: "-B -e -V"
+
+unit-tests:
+  stage: test
+  image: maven:3.9.6-eclipse-temurin-21
+  script:
+    - mvn $MAVEN_CLI_OPTS clean verify
+  only:
+    - merge_requests
+
+docker-build-push:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.9.2-debug
+    entrypoint: [""]
+  script:
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${DOCKER_IMAGE}:latest"
+      --cache=true
+  only:
+    - main
