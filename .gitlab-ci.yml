@@ -8,6 +8,8 @@ variables:
 
 unit-tests:
   stage: test
+  tags:
+    - windows
   image: maven:3.9.6-eclipse-temurin-21
   script:
     - mvn $MAVEN_CLI_OPTS clean verify
@@ -16,6 +18,8 @@ unit-tests:
 
 docker-build-push:
   stage: build
+  tags:
+    - windows
   image:
     name: gcr.io/kaniko-project/executor:v1.9.2-debug
     entrypoint: [""]
