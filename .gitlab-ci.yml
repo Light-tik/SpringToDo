@@ -1,3 +1,6 @@
+#1. For each PR in the dev branch, tests must be run and the application assembly must be checked
+
+#2. When merging a merge request into the master branch, build a docker image and push it to the docker hub
 
 
 stages:
