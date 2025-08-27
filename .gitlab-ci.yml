@@ -14,7 +14,7 @@ variables:
 unit-tests:
   stage: test
   tags:
-    - windows
+    - docker
   image: maven:3.9.6-eclipse-temurin-21
   script:
     - mvn $MAVEN_CLI_OPTS clean verify
@@ -24,15 +24,20 @@ unit-tests:
 docker-build-push:
   stage: build
   tags:
-    - windows
-  image:
-    name: gcr.io/kaniko-project/executor:v1.9.2-debug
-    entrypoint: [""]
+    - docker
+  image: docker:24
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""   
+  before_script:
+    - docker info
   script:
-    - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${DOCKER_IMAGE}:latest"
-      --cache=true
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - docker build -t $DOCKER_IMAGE:latest .
+    - docker push $DOCKER_IMAGE:latest
   only:
     - main
+
