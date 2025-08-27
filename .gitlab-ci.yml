@@ -13,8 +13,6 @@ variables:
 
 unit-tests:
   stage: test
-  tags:
-    - docker
   image: maven:3.9.6-eclipse-temurin-21
   script:
     - mvn $MAVEN_CLI_OPTS clean verify
@@ -23,8 +21,6 @@ unit-tests:
 
 docker-build-push:
   stage: build
-  tags:
-    - docker
   image: docker:24
   services:
     - name: docker:dind
