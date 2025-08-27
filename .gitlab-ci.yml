@@ -11,7 +11,7 @@ variables:
   DOCKER_IMAGE: kuzminova/todo-service
   MAVEN_CLI_OPTS: "-B -e -V"
 
-unit-tests:
+tests:
   stage: test
   image: maven:3.9.6-eclipse-temurin-21
   variables:
