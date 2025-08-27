@@ -13,11 +13,19 @@ variables:
 
 unit-tests:
   stage: test
+  tags:
+    - docker
   image: maven:3.9.6-eclipse-temurin-21
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+    TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+  before_script:
+    - apt-get update && apt-get install -y docker.io
+    - docker info
+  services: []
   script:
     - mvn $MAVEN_CLI_OPTS clean verify
-  only:
-    - merge_requests
+
 
 docker-build-push:
   stage: build
