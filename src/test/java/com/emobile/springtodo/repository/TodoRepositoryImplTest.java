@@ -1,14 +1,16 @@
 package com.emobile.springtodo.repository;
 
 import com.emobile.springtodo.entity.TodoEntity;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -19,58 +21,53 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-@Slf4j
 @Testcontainers
+@DataJpaTest
+@Slf4j
+@Import(TodoRepositoryImpl.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class TodoRepositoryImplTest {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16.0-alpine")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        postgres.start();
+    static void configure(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
     }
 
     @Autowired
-    TodoRepository todoRepository;
+    private TodoRepository todoRepository;
 
-    TodoEntity todo;
+    @PersistenceContext
+    private EntityManager em;
 
     @BeforeEach
-    void setUp() {
-        todo = new TodoEntity();
-        todo.setTitle("Test Title");
-        todo.setDescription("Test Description");
-        todo.setCompleted(false);
-        log.info("Todo create with title: {}", todo.getTitle());
+    void resetDb() {
+        em.createNativeQuery("TRUNCATE TABLE todos RESTART IDENTITY CASCADE").executeUpdate();
     }
 
     @Test
     @DisplayName("Save todo and find by id")
-    void saveAndFindById() {
+    void testSaveAndFind() {
+        TodoEntity todo = new TodoEntity();
+        todo.setTitle("Test");
+        todo.setDescription("Desc");
         todoRepository.save(todo);
         log.info("Todo with title {} save in repository", todo.getTitle());
-
-        assertThat(todo.getId()).isNotNull();
 
         Optional<TodoEntity> found = todoRepository.findById(todo.getId());
 
         assertThat(found).isPresent();
-        assertThat(found.get().getTitle()).isEqualTo("Test Title");
+        assertThat(found.get().getTitle()).isEqualTo("Test");
     }
 
     @Test
     @DisplayName("Update todo and save")
     void update() {
+        TodoEntity todo = new TodoEntity();
         todoRepository.save(todo);
 
         todo.setTitle("Updated Title");
@@ -88,6 +85,7 @@ class TodoRepositoryImplTest {
     @Test
     @DisplayName("Delete todo")
     void deleteById() {
+        TodoEntity todo = new TodoEntity();
         todoRepository.save(todo);
 
         todoRepository.deleteById(todo.getId());
@@ -99,6 +97,10 @@ class TodoRepositoryImplTest {
     @Test
     @DisplayName("Check if such a todo exists")
     void existsById() {
+        TodoEntity todo = new TodoEntity();
+        todo.setTitle("Test Todo");
+        todo.setDescription("Description");
+        todo.setCompleted(false);
         todoRepository.save(todo);
 
         boolean exists = todoRepository.existsById(todo.getId());
