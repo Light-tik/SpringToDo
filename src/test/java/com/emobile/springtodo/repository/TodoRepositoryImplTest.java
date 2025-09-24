@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.*;
 @Testcontainers
 @DataJpaTest
 @Slf4j
-@Import(TodoRepositoryImpl.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class TodoRepositoryImplTest {
 
@@ -73,7 +72,7 @@ class TodoRepositoryImplTest {
         todo.setTitle("Updated Title");
         todo.setCompleted(true);
 
-        todoRepository.update(todo);
+        todoRepository.save(todo);
         log.info("Todo update");
 
         Optional<TodoEntity> updated = todoRepository.findById(todo.getId());
