@@ -1,5 +1,6 @@
 package com.emobile.springtodo;
 
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.*;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -7,8 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.*;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -27,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @AutoConfigureMockMvc
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Profile("test")
 class ControllerTodoIntegrationTests {
 
     @Container
@@ -42,14 +44,12 @@ class ControllerTodoIntegrationTests {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
+    private EntityManager entityManager;
 
     @BeforeEach
     void resetDb(TestInfo info) {
         if (info.getTags().contains("truncate")) {
-            jdbcTemplate.execute("TRUNCATE TABLE todos");
+            entityManager.createNativeQuery("TRUNCATE TABLE todos RESTART IDENTITY CASCADE").executeUpdate();
         }
     }
 

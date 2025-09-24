@@ -8,8 +8,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: BIGSERIAL
-                  autoIncrement: true
+                  type: BIGINT
                   constraints:
                     primaryKey: true
               - column:
@@ -38,3 +37,12 @@ databaseChangeLog:
                   defaultValueComputed: CURRENT_TIMESTAMP
                   constraints:
                     nullable: false
+
+  - changeSet:
+      id: create-todo-sequence
+      author: postgres
+      changes:
+        - createSequence:
+            sequenceName: todo_id_seq
+            startValue: 1
+            incrementBy: 1
