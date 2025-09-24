@@ -1,0 +1,45 @@
+#1. For each PR in the dev branch, tests must be run and the application assembly must be checked
+
+#2. When merging a merge request into the master branch, build a docker image and push it to the docker hub
+
+
+stages:
+  - test
+  - build
+
+variables:
+  DOCKER_IMAGE: kuzminova/todo-service
+  MAVEN_CLI_OPTS: "-B -e -V"
+
+tests:
+  stage: test
+  image: maven:3.9.6-eclipse-temurin-21
+  variables:
+    DOCKER_HOST: unix:///var/run/docker.sock
+    TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+  before_script:
+    - apt-get update && apt-get install -y docker.io
+    - docker info
+  services: []
+  script:
+    - mvn $MAVEN_CLI_OPTS clean verify
+
+
+docker-build-push:
+  stage: build
+  image: docker:24
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""   
+  before_script:
+    - docker info
+  script:
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - docker build -t $DOCKER_IMAGE:latest .
+    - docker push $DOCKER_IMAGE:latest
+  only:
+    - main
+
