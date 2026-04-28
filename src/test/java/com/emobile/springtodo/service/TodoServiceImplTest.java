@@ -162,7 +162,7 @@ class TodoServiceImplTest {
         TodoResponseDTO result = todoService.update(id, request);
 
         assertThat(result.title()).isEqualTo("Updated");
-        verify(repository).update(entity);
+        verify(repository).save(entity);
     }
 
     @Test
@@ -220,7 +220,7 @@ class TodoServiceImplTest {
         TodoResponseDTO result = todoService.markAsCompleted(id);
 
         assertThat(result.completed()).isTrue();
-        verify(repository).update(entity);
+        verify(repository).save(entity);
         verify(metricsService).incrementCompleted();
     }
 

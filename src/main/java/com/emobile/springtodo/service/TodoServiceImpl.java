@@ -45,7 +45,7 @@ public class TodoServiceImpl implements TodoService{
     @Override
     public TodoResponseDTO getById(Long id) {
         TodoEntity entity = repository.findById(id)
-                .orElseThrow(() -> new CustomException("Task " + id +" not found "));
+                .orElseThrow(() -> new CustomException("Task  " + id +" not found"));
         return mapper.entityToResponse(entity);
     }
 
@@ -66,7 +66,7 @@ public class TodoServiceImpl implements TodoService{
         entity.setTitle(request.title());
         entity.setUpdatedAt(LocalDateTime.now());
         entity.setDescription(request.description());
-        repository.update(entity);
+        repository.save(entity);
         log.info("Entity updated: {}", entity.getId());
         return mapper.entityToResponse(entity);
     }
@@ -88,7 +88,7 @@ public class TodoServiceImpl implements TodoService{
                 .orElseThrow(() -> new CustomException("Task " + id +" not found "));
         entity.setCompleted(true);
         entity.setUpdatedAt(LocalDateTime.now());
-        repository.update(entity);
+        repository.save(entity);
         metricsService.incrementCompleted();
         log.info("Task completed : {}", entity.getId());
         return mapper.entityToResponse(entity);
